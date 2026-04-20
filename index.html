@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>tagiee77 | info</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<img class="custom-bg" src="Julien Douvier.gif" alt="background">
+<div class="overlay-dark"></div>
+
+<div class="main-card">
+  <div class="avatar-section">
+    <img class="avatar-img" src="anime.jpg" alt="avatar">
+    <div class="nickname">tagiee77</div>
+    <div class="rp-status">🏆 tagiee77 info</div>
+  </div>
+
+  <div class="links-grid">
+    <a href="https://www.twitch.tv/svager192" target="_blank" class="social-btn">📺 Twitch.tv/svager192</a>
+    <a href="https://t.me/tagiee77" target="_blank" class="social-btn">💬 Telegram / tagiee77</a>
+    <a href="https://www.youtube.com/@tagiee77" target="_blank" class="social-btn">🎬 YouTube @tagiee77</a>
+  </div>
+
+  <div class="music-player">
+    <div class="track-name" id="trackLabel">🎵 Ах Одесса - Hoodtrap Remix</div>
+    <div class="progress-container" id="progressBar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div class="time-row">
+      <span id="currentTime">0:00</span>
+      <span id="durationTime">0:00</span>
+    </div>
+    <div class="controls-row">
+      <button class="play-pause-btn" id="playPauseBtn">▶</button>
+      <div class="volume-wrap">
+        <span>🔊</span>
+        <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.7">
+      </div>
+    </div>
+  </div>
+  <div class="footer-note">🔥 tagiee77 🔥</div>
+</div>
+
+<script>
+  // СТВОРЮЄМО АУДІО З ГОТОВОЮ ПІСНЕЮ
+  const audio = new Audio();
+  let isPlaying = false;
+  let interval;
+
+  const playBtn = document.getElementById('playPauseBtn');
+  const progressFill = document.getElementById('progressFill');
+  const progressBar = document.getElementById('progressBar');
+  const currentSpan = document.getElementById('currentTime');
+  const durationSpan = document.getElementById('durationTime');
+  const volumeSlider = document.getElementById('volumeSlider');
+  const trackLabel = document.getElementById('trackLabel');
+
+  // ВАЖЛИВО: ШЛЯХ ДО ВАШОГО MP3 ФАЙЛУ
+  // Якщо файл лежить в КОРЕНІ репозиторію (поруч з index.html):
+  audio.src = "track.mp3";
+  
+  // Якщо файл лежить в папці audio:
+  // audio.src = "audio/Ах Одесса - Hoodtrap Remix.mp3";
+  
+  audio.preload = "auto";
+  audio.volume = 0.7;
+
+  function formatTime(t) {
+    if (isNaN(t) || t === undefined || t === Infinity) return "0:00";
+    const m = Math.floor(t / 60);
+    const s = Math.floor(t % 60);
+    return `${m}:${s < 10 ? '0' + s : s}`;
+  }
+
+  function updateProgress() {
+    if (audio.duration && !isNaN(audio.duration)) {
+      const percent = (audio.currentTime / audio.duration) * 100;
+      progressFill.style.width = percent + '%';
+      currentSpan.innerText = formatTime(audio.currentTime);
+      durationSpan.innerText = formatTime(audio.duration);
+    }
+  }
+
+  function togglePlay() {
+    if (isPlaying) {
+      audio.pause();
+      playBtn.innerHTML = '▶';
+      isPlaying = false;
+      if (interval) clearInterval(interval);
+      interval = null;
+    } else {
+      audio.play().then(() => {
+        playBtn.innerHTML = '⏸';
+        isPlaying = true;
+        if (interval) clearInterval(interval);
+        interval = setInterval(updateProgress, 200);
+      }).catch(error => {
+        console.error("Помилка:", error);
+        trackLabel.innerHTML = "⚠️ Файл не знайдено! Перевірте назву MP3";
+        alert("Помилка: файл 'Ах Одесса - Hoodtrap Remix.mp3' не знайдено.\n\nПереконайтеся, що файл лежить в КОРЕНІ репозиторію (поруч з index.html) і назва точно збігається (з пробілами та літерами)");
+      });
+    }
+  }
+
+  function seek(e) {
+    if (!audio.duration || isNaN(audio.duration)) return;
+    const rect = progressBar.getBoundingClientRect();
+    const percent = (e.clientX - rect.left) / rect.width;
+    audio.currentTime = percent * audio.duration;
+    updateProgress();
+  }
+
+  volumeSlider.addEventListener('input', () => audio.volume = volumeSlider.value);
+  playBtn.addEventListener('click', togglePlay);
+  progressBar.addEventListener('click', seek);
+
+  audio.addEventListener('ended', () => {
+    playBtn.innerHTML = '▶';
+    isPlaying = false;
+    progressFill.style.width = '0%';
+    currentSpan.innerText = "0:00";
+    if (interval) clearInterval(interval);
+    interval = null;
+  });
+
+  audio.addEventListener('loadedmetadata', () => {
+    durationSpan.innerText = formatTime(audio.duration);
+    updateProgress();
+  });
+
+  audio.addEventListener('error', () => {
+    trackLabel.innerHTML = "⚠️ Файл не знайдено! Перевірте назву";
+  });
+
+  updateProgress();
+</script>
+</body>
+</html>
